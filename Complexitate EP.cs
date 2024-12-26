@@ -44,7 +44,7 @@
 // P8: se coloreaza cu rosu celula
                  countRed++;    // A8
                  //MessageBox.Show($"Valoare din celula ({row + 1}, {column + 1}) este invalida.");
-// P9: creste numarul de "casute rosii" (invariant)
+// P9: creste numarul de "casute rosii" 
              }
              else 
              {
@@ -57,14 +57,14 @@
  // P11 & C6 -> P12: e o valoare corecta
  // P12
                      countAllGreen++;   // A10
-// P13: creste numarul de "casute verzi" (invariant)
+// P13: creste numarul de "casute verzi" 
                      sudokuDataGridView.Rows[row].Cells[column].Style.ForeColor = System.Drawing.Color.Green;   // A11
 // P14
                      if(sudokuDataGridView.Rows[row].Cells[column].Style.BackColor != System.Drawing.Color.LightGray)    // C7
 // P14 & C7 -> P15:  daca nu e casuta gri (nescrisa inca), inseamna ca e verde
 // P15
                          countGreen++;   // A12
-// P16: creste numarul de "casute verzi" (invariant)
+// P16: creste numarul de "casute verzi" 
                  }
              }
          }
