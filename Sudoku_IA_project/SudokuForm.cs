@@ -33,12 +33,15 @@ namespace Sudoku_IA_project
             validateMoveButton.Font = new Font("Arial", 10);
             getHintButton.Font = new Font("Arial", 10);
             HelpButton.Font = new Font("Arial", 10);
+            generateSolutionButton.Font = new Font("Arial", 10);
 
             cleanButton.Enabled = false;
             validateMoveButton.Enabled = false;
             getHintButton.Enabled = false;
+            generateSolutionButton.Enabled = false;
             InitializeDataGridView();
             sudokuDataGridView.Enabled = false;
+            sudokuDataGridView.Visible  = false;
 
 
         }
@@ -64,6 +67,8 @@ namespace Sudoku_IA_project
         {
             isFillingAutomatically = true;
             sudokuDataGridView.Enabled = true;
+            generateSolutionButton.Enabled = true;
+            sudokuDataGridView.Visible = true;
             InitializeDataGridView();
 
             for (int i = 0; i < 9; i++)
@@ -426,5 +431,79 @@ namespace Sudoku_IA_project
         {
             MessageBox.Show("Reguli:\n\n-Pentru a incepe jocul este necesar ca jucatorul sa genereze o tabla, cu ajutorul butonului Generate table. Se poate genera oricand alta tabla, dar progresul anterior va fi pierdut.\n\n- Pentru a putea castiga, jucatorul trebuie sa completeze toate celulele goale cu valori valide. O valoare valida este una cuprinsa intre 1 si 9, care nu se repeta pe acelasi rand, coloana sau patratet de 3x3 marcat cu linii ingrosate.\n\n-Validarea se poate face cu butonul de validare, care va marca numerele valide cu verde, iar cele invalide cu rosu.\n\n-Daca se doreste stergerea tuturor valorilor completate pana in momentul respectiv, se va folosi butonul de Clena Table.\n\n-In cazul in care jucatorul are dificultati, se pot sugera valori de la butonul de Get Hint, in limita numarului maxim de hinturi oferit.\n\nMult succes!");
         }
+
+        /// <summary>
+        /// Functie de rezolvare a algoritmului cu Backtracking si Forward Checking
+        /// </summary>
+        /// <returns></returns>
+        private async Task<bool> SolveSudokuWithForwardCheckingAndBacktrackingAsync()
+        {
+            // P
+            // - Forward Checking (verificarea valorilor posibile)
+            // - Backtracking (încercarea valorilor și revenirea la pașii anteriori în caz de eroare)
+
+            // IN: Algoritmul primește matricea `table` cu valori inițiale (sudoku parțial completat).
+            for (int row = 0; row < 9; row++) // C1: Bucla pentru rânduri
+            {
+                for (int column = 0; column < 9; column++) // C2: Bucla pentru coloane
+                {
+                    // P0: Parcurgerea fiecărei celule a tabelei Sudoku
+                    if (table[row, column] == 0) // C3: Dacă celula este goală (necompletată)
+                    {
+                        // P1: Dacă celula este goală, încercăm să o completăm
+                        List<int> possibleValues = GetPossibleValuesFromForwardChecking(row, column); // A1: Obținem valorile posibile prin forward checking
+                        //P2
+                        foreach (int value in possibleValues) // C4: Pentru fiecare valoare posibilă
+                        {
+                            // P3: Trecem prin fiecare valoare posibilă pentru această celulă
+                            table[row, column] = value; // A2: Atribuim valoarea celulei
+                            //P4
+                            if (sudokuDataGridView.Rows[row].Cells[column].Style.BackColor != System.Drawing.Color.Gray) // C5: Verificăm dacă celula nu este marcată ca necompletată
+                            {
+                                //P5
+                                sudokuDataGridView.Rows[row].Cells[column].Value = table[row, column].ToString(); // A3: Setăm valoarea în grid
+                                sudokuDataGridView.Rows[row].Cells[column].Style.ForeColor = System.Drawing.Color.Blue; // A4: Colorăm celula cu albastru
+                            }
+                            //P6
+                            await Task.Delay(500); // A5: Așteptăm 500ms pentru a observa progresul în interfața utilizatorului
+                            
+                            // P7: Recursivitatea pentru a încerca următorul pas în rezolvarea Sudoku-ului
+                            if (await SolveSudokuWithForwardCheckingAndBacktrackingAsync()) // C6: Dacă soluția recursivă duce la succes
+                            {
+                                //P8
+                                return true; // A6: Dacă s-a găsit o soluție, returnăm true
+                            }
+                            //P9
+                            table[row, column] = 0; // A7: Resetăm valoarea la 0 (backtracking)
+                            //P10
+                            if (sudokuDataGridView.Rows[row].Cells[column].Style.BackColor != System.Drawing.Color.Gray) // C7: Verificăm din nou dacă celula nu este gri
+                            {
+                                //P11
+                                sudokuDataGridView.Rows[row].Cells[column].Value = ""; // A8: Ștergem valoarea din grid
+                                sudokuDataGridView.Rows[row].Cells[column].Style.ForeColor = System.Drawing.Color.Blue; // A9: Colorează celula cu albastru
+                            }
+                        }
+                        return false; // P12: Dacă nici o valoare nu duce la o soluție, returnăm false
+                    }
+                }
+            }
+            return true; // P13: Dacă am completat toate celulele, Sudoku-ul este rezolvat, returnăm true
+        }
+
+
+        private async void generateSolutionButton_Click(object sender, EventArgs e)
+        {
+            bool isSolved = await SolveSudokuWithForwardCheckingAndBacktrackingAsync();
+            if (isSolved)
+            {
+                MessageBox.Show("Tabla a fost rezolvată cu succes!");
+            }
+            else
+            {
+                MessageBox.Show("Nu există soluție pentru această tablă.");
+            }
+        }
+
     }
+
 }
